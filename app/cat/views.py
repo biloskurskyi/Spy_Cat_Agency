@@ -2,17 +2,19 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from core.models import Cat
+
 from .serializers import CatSerializer
 
 
 class CatView(APIView):
-    """
-    Handles the creation of a new cat.
-    """
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
+        """
+        Create new cat.
+        """
         serializer = CatSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -23,7 +25,7 @@ class CatView(APIView):
 
     def get(self, request):
         """
-        List all books.
+        List of all cats.
         """
         cats = Cat.objects.filter(owner=request.user)
         serializer = CatSerializer(cats, many=True)
@@ -45,3 +47,17 @@ class CatDetailView(APIView):
 
         serializer = CatSerializer(cat)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        try:
+            cat = Cat.objects.get(pk=pk, owner=request.user)
+        except Cat.DoesNotExist:
+            return Response({'detail': 'Cat not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CatSerializer(cat, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

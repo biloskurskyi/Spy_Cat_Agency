@@ -63,14 +63,43 @@ class Cat(models.Model):
 
     def is_valid_breed(self, breed_name):
         """Check if the breed exists in TheCatAPI"""
-        url = f"https://api.thecatapi.com/v1/breeds"
+        url = "https://api.thecatapi.com/v1/breeds"
         response = requests.get(url)
         if response.status_code == 200:
             breeds = response.json()
             breed_names = [breed['name'].lower() for breed in breeds]
-            print(breed_names) # test
+            print(breed_names)  # test
             return breed_name.lower() in breed_names
         return False
 
     def __str__(self):
         return f"{self.name} - {self.breed}"
+
+
+class Mission(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    cat = models.ForeignKey(Cat, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_completed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+    def can_be_deleted(self):
+        return self.cat is None
+
+
+class Goal(models.Model):
+    name = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+    notes = models.TextField()
+    status = models.BooleanField(default=False)
+    mission = models.ForeignKey(Mission, related_name='goals', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+    def can_edit_notes(self):
+        return not self.status
