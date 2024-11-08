@@ -1,5 +1,6 @@
 import re
 
+import requests
 from decouple import config
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.exceptions import ValidationError
@@ -51,3 +52,25 @@ class User(AbstractUser):
             raise ValidationError("Password must contain at least one uppercase letter.")
 
         super().set_password(raw_password)
+
+
+class Cat(models.Model):
+    name = models.CharField(max_length=32)
+    years_experience = models.PositiveSmallIntegerField()
+    salary = models.DecimalField(max_digits=10, decimal_places=2)
+    breed = models.CharField(max_length=100)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, default=2)
+
+    def is_valid_breed(self, breed_name):
+        """Check if the breed exists in TheCatAPI"""
+        url = f"https://api.thecatapi.com/v1/breeds"
+        response = requests.get(url)
+        if response.status_code == 200:
+            breeds = response.json()
+            breed_names = [breed['name'].lower() for breed in breeds]
+            print(breed_names) # test
+            return breed_name.lower() in breed_names
+        return False
+
+    def __str__(self):
+        return f"{self.name} - {self.breed}"
