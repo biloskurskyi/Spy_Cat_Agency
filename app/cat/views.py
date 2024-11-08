@@ -18,7 +18,7 @@ class CatView(APIView):
         serializer = CatSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -61,3 +61,19 @@ class CatDetailView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        """
+        Delete a cat if it has no missions.
+        """
+        try:
+            cat = Cat.objects.get(pk=pk, owner=request.user)
+        except Cat.DoesNotExist:
+            return Response({'detail': 'Cat not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if cat.mission_set.exists():
+            return Response({'detail': 'Cannot delete cat with active missions.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        cat.delete()
+        return Response({'detail': 'Cat deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)

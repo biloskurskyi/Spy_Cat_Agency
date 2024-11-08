@@ -15,6 +15,7 @@ class MissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mission
         fields = ['name', 'description', 'cat', 'is_completed', 'goals']
+        read_only_fields = ['owner']
 
     def create(self, validated_data):
         goals_data = validated_data.pop('goals')

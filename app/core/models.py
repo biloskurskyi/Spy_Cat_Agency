@@ -59,7 +59,7 @@ class Cat(models.Model):
     years_experience = models.PositiveSmallIntegerField()
     salary = models.DecimalField(max_digits=10, decimal_places=2)
     breed = models.CharField(max_length=100)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, default=2)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def is_valid_breed(self, breed_name):
         """Check if the breed exists in TheCatAPI"""
@@ -83,6 +83,7 @@ class Mission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_completed = models.BooleanField(default=False)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
